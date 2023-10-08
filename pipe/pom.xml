@@ -44,7 +44,7 @@
           <archive>
             <manifest>
               <!-- Specify the main class here -->
-              <mainClass>com.dspractice.App</mainClass>
+              <mainClass>com.dspractice.pipe.App</mainClass>
             </manifest>
           </archive>
         </configuration>
