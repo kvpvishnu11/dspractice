@@ -15,6 +15,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+
+import org.apache.http.ParseException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.Date;
@@ -152,15 +154,30 @@ public class Youtubedata {
                 return;
             }
 
+            // Convert the date string to a timestamp
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            java.util.Date parsedDate = null;
+			try {
+				parsedDate = dateFormat.parse(commentCreatedDateTime);
+			} catch (java.text.ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            Timestamp timestamp = new Timestamp(parsedDate.getTime());
+
             // Insert the comment into the database
             String insertQuery = "INSERT INTO comments (comment_id, comment_text, comment_created_datetime) VALUES (?, ?, ?)";
             PreparedStatement insertStatement = conn.prepareStatement(insertQuery);
             insertStatement.setString(1, commentId);
             insertStatement.setString(2, commentText);
-            insertStatement.setString(3, commentCreatedDateTime);
+            insertStatement.setTimestamp(3, timestamp);
+
             insertStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
     }
+
 }
