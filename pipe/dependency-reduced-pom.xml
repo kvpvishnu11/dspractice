@@ -14,7 +14,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.dspractice.pipe.App</mainClass>
+              <mainClass>com.dspractice.pipe.Youtubedata</mainClass>
             </manifest>
           </archive>
         </configuration>
