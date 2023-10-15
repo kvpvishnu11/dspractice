@@ -34,7 +34,7 @@ public class Redditdata {
                 Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
 
                 String insertSql = "INSERT INTO reddit_comments (comment_id, comment_text, subreddit, comment_created_time, db_insertion_time) " +
-                        "VALUES (?, ?, ?, ?, NOW()) ON CONFLICT (comment_id) DO NOTHING";
+                        "VALUES (?, ?, ?, ?, NOW() AT TIME ZONE 'UTC') ON CONFLICT (comment_id) DO NOTHING";
                 PreparedStatement preparedStatement = connection.prepareStatement(insertSql);
 
                 String checkIfExistsSql = "SELECT comment_id FROM reddit_comments WHERE comment_id = ?";
@@ -85,7 +85,7 @@ public class Redditdata {
 
                                 if (!resultSet.next()) {
                                     // Comment ID doesn't exist in the database, proceed to insert
-                                    String commentText = commentData.getString("body"); // Corrected field name
+                                    String commentText = commentData.getString("body");
                                     String subreddit = subredditName;
                                     long createdUtc = commentData.getLong("created_utc");
 
