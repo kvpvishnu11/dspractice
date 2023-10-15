@@ -5,9 +5,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -17,24 +17,24 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.Date;
+
 
 public class Youtubedata {
     private static String nextPageToken = null; 
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-        /* Defining my Database related URL and credentials - "youtube" is my db name */
-        
+        // My Database related URL and credentials - "youtube" is my db name
         String jdbcUrl = "jdbc:postgresql://localhost:5432/youtube";
         String username = "postgres";
         String password = "150030441@klU";
 
         try {
             Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
-            
-            // Scheduling the code to run every 10 seconds
+
+            // Scheduling the code to run every 5 minutes
             scheduler.scheduleAtFixedRate(() -> {
                 try {
                     fetchAndInsertYouTubeComments(conn);
@@ -46,9 +46,8 @@ public class Youtubedata {
             e.printStackTrace();
         }
     }
-    
-    // Video ID fetch from database dynamically from "videos" table in DB.
-    
+
+    // Video ID fetch from database dynamically from "videos" table in DB
     private static String fetchVideoIdFromDatabase(Connection conn) {
         try {
             String query = "SELECT videoId FROM videos ORDER BY id DESC LIMIT 1";
@@ -63,42 +62,36 @@ public class Youtubedata {
         }
         return null;
     }
-   
-    // Once we fetch the video ID, using the same id to fetch the youtube comments
-    
+
+    // Once we fetch the video ID, use the same ID to fetch the YouTube comments
     private static void fetchAndInsertYouTubeComments(Connection conn) {
         try {
-            
-        	  String videoId = fetchVideoIdFromDatabase(conn);
+            String videoId = fetchVideoIdFromDatabase(conn);
 
-              if (videoId == null) {
-                  System.out.println("No videoId found in the videos table.");
-                  return;
-              }
+            if (videoId == null) {
+                System.out.println("No videoId found in the videos table.");
+                return;
+            }
 
-        	
-            // Defining the API related parameters below
-              
-            String apiKey = "AIzaSyCwXjwmK-p7eWrher4jnBUHtDVfR54yhq4"; // My Key
+            // Define the API related parameters
+            String apiKey = "AIzaSyCwXjwmK-p7eWrher4jnBUHtDVfR54yhq4"; 
             int maxResults = 100;
-            
+
             // API URL Generation
             String apiUrl = "https://www.googleapis.com/youtube/v3/commentThreads?key=" + apiKey
                     + "&textFormat=plainText&part=snippet&videoId=" + videoId
                     + "&maxResults=" + maxResults;
 
-          
             if (nextPageToken != null) {
                 apiUrl += "&pageToken=" + nextPageToken;
             }
 
             // Using HTTP client to send the request
-            
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl))
                     .build();
-            
+
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
@@ -118,10 +111,16 @@ public class Youtubedata {
                             .getJSONObject("snippet")
                             .getString("publishedAt");
 
-                    // Change the format of the date to be compatible with MySQL DATETIME
+                    // Change the format of the date to be compatible with PostgreSQL TIMESTAMP
                     SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                     SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    String commentCreatedDateTimeFormatted = outputDateFormat.format(inputDateFormat.parse(commentCreatedDateTime));
+
+                    // Parse the date in UTC timezone
+                    inputDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    Date parsedDate = inputDateFormat.parse(commentCreatedDateTime);
+
+                    // Format the date for insertion into the database
+                    String commentCreatedDateTimeFormatted = outputDateFormat.format(parsedDate);
 
                     // Insert the comment into the database while avoiding duplicates
                     insertCommentIntoDatabase(conn, commentId, commentText, commentCreatedDateTimeFormatted);
@@ -140,9 +139,8 @@ public class Youtubedata {
             e.printStackTrace();
         }
     }
-    
-    // Inserting Comment into DB by checking if the comment id already exists in DB or not
 
+    // Inserting Comment into DB by checking if the comment id already exists in DB or not
     private static void insertCommentIntoDatabase(Connection conn, String commentId, String commentText, String commentCreatedDateTime) {
         try {
             // Checking if the comment id already exists in DB first
@@ -160,12 +158,9 @@ public class Youtubedata {
             insertStatement.setString(1, commentId);
             insertStatement.setString(2, commentText);
             insertStatement.setString(3, commentCreatedDateTime);
-         
-
             insertStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
 }
