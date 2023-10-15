@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
@@ -34,7 +35,7 @@ public class Redditdata {
                 Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
 
                 String insertSql = "INSERT INTO reddit_comments (comment_id, comment_text, subreddit, comment_created_time, db_insertion_time) " +
-                        "VALUES (?, ?, ?, ?, NOW() AT TIME ZONE 'UTC') ON CONFLICT (comment_id) DO NOTHING";
+                        "VALUES (?, ?, ?, ?, NOW()) ON CONFLICT (comment_id) DO NOTHING";
                 PreparedStatement preparedStatement = connection.prepareStatement(insertSql);
 
                 String checkIfExistsSql = "SELECT comment_id FROM reddit_comments WHERE comment_id = ?";
@@ -92,13 +93,16 @@ public class Redditdata {
                                     // Convert created_utc to a formatted date-time string in UTC
                                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                                     sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-                                    String commentCreatedTime = sdf.format(new Date(createdUtc * 1000));
+                                    String commentCreatedTimeString = sdf.format(new Date(createdUtc * 1000));
+
+                                    // Parse the formatted string into a Timestamp
+                                    Timestamp commentCreatedTime = Timestamp.valueOf(commentCreatedTimeString);
 
                                     // Set the parameters for the SQL statement
                                     preparedStatement.setString(1, commentId);
                                     preparedStatement.setString(2, commentText);
                                     preparedStatement.setString(3, subreddit);
-                                    preparedStatement.setString(4, commentCreatedTime);
+                                    preparedStatement.setTimestamp(4, commentCreatedTime);
 
                                     // Execute the SQL statement to insert the comment or reply
                                     preparedStatement.executeUpdate();
