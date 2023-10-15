@@ -31,7 +31,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.dspractice.pipe.App</mainClass>
+                  <mainClass>com.dspractice.pipe.Youtubedata</mainClass>
                 </transformer>
               </transformers>
             </configuration>
