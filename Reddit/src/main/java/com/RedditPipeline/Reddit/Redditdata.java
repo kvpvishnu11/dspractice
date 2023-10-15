@@ -68,8 +68,8 @@ public class Redditdata {
 
                     // Parsing the JSON response
                     JSONObject jsonResponse = new JSONObject(response.body());
-                    System.out.println("JSON Response:");
-                    System.out.println(jsonResponse);
+                  System.out.println("JSON Response:");
+                    //System.out.println(jsonResponse);
 
                     // Extract the comments data
                     if (jsonResponse.has("data")) {
