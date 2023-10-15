@@ -1,28 +1,26 @@
 package com.RedditPipeline.Reddit;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class Redditdata {
     public static void main(String[] args) {
-        // Scheduling it for every 5 minutes 
-    	
+        // Scheduling it for every 5 minutes
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
         executorService.scheduleAtFixedRate(() -> {
@@ -32,23 +30,17 @@ public class Redditdata {
                 String username = "postgres";
                 String password = "150030441@klU";
 
-                 
+                // Establish a database connection
                 Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
 
-                // Set the connection to use UTC
-                ((DateFormat) connection).setTimeZone(TimeZone.getTimeZone("UTC"));
-
-                
                 String insertSql = "INSERT INTO reddit_comments (comment_id, comment_text, subreddit, comment_created_time, db_insertion_time) " +
-                                    "VALUES (?, ?, ?, ?, NOW() AT TIME ZONE 'UTC') ON CONFLICT (comment_id) DO NOTHING";
+                        "VALUES (?, ?, ?, ?, NOW()) ON CONFLICT (comment_id) DO NOTHING";
                 PreparedStatement preparedStatement = connection.prepareStatement(insertSql);
 
-                 
                 String checkIfExistsSql = "SELECT comment_id FROM reddit_comments WHERE comment_id = ?";
                 PreparedStatement checkIfExistsStatement = connection.prepareStatement(checkIfExistsSql);
 
-                // Fetch the sub reddits dynamically from database
-                
+                // Fetch the subreddits dynamically from the database
                 String fetchSubredditsSql = "SELECT subreddit_name FROM subreddits";
                 PreparedStatement fetchSubredditsStatement = connection.prepareStatement(fetchSubredditsSql);
 
@@ -58,11 +50,11 @@ public class Redditdata {
                 while (subredditResultSet.next()) {
                     String subredditName = subredditResultSet.getString("subreddit_name");
 
-                    String apiUrl = "https://api.reddit.com/r/" + subredditName + "/comments.json"; 
+                    String apiUrl = "https://api.reddit.com/r/" + subredditName + "/comments.json";
 
                     HttpClient client = HttpClient.newHttpClient();
 
-                 // Send http request
+                    // Send HTTP request
                     String requestUrl = apiUrl;
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(requestUrl))
@@ -74,11 +66,11 @@ public class Redditdata {
                     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                     // Parsing the JSON response
-                    JSONObject jsonResponse = new JSONObject(response.body());
+                    JSONObject jsonResponse = new JSONObject(response);
                     System.out.println("JSON Response:");
                     System.out.println(jsonResponse);
 
-                    // Extract the comments data 
+                    // Extract the comments data
                     if (jsonResponse.has("data")) {
                         JSONObject data = jsonResponse.getJSONObject("data");
                         if (data.has("children")) {
@@ -93,7 +85,7 @@ public class Redditdata {
 
                                 if (!resultSet.next()) {
                                     // Comment ID doesn't exist in the database, proceed to insert
-                                    String commentText = commentData.getString("body");
+                                    String commentText = commentData.getString("body"); // Corrected field name
                                     String subreddit = subredditName;
                                     long createdUtc = commentData.getLong("created_utc");
 
@@ -124,6 +116,6 @@ public class Redditdata {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 300, TimeUnit.SECONDS); 
+        }, 0, 300, TimeUnit.SECONDS);
     }
 }
