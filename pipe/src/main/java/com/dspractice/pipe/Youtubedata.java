@@ -26,6 +26,7 @@ public class Youtubedata {
     private static String nextPageToken = null; 
 
     public static void main(String[] args) {
+    	
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         // My Database related URL and credentials - "youtube" is my db name
@@ -160,7 +161,7 @@ public class Youtubedata {
 			try {
 				parsedDate = dateFormat.parse(commentCreatedDateTime);
 			} catch (java.text.ParseException e) {
-				// TODO Auto-generated catch block
+				 
 				e.printStackTrace();
 			}
             Timestamp timestamp = new Timestamp(parsedDate.getTime());
