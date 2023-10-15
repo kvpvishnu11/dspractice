@@ -66,7 +66,7 @@ public class Redditdata {
                     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                     // Parsing the JSON response
-                    JSONObject jsonResponse = new JSONObject(response);
+                    JSONObject jsonResponse = new JSONObject(response.body());
                     System.out.println("JSON Response:");
                     System.out.println(jsonResponse);
 
