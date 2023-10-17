@@ -1,4 +1,5 @@
 package com.RedditPipeline.Reddit;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -25,6 +26,11 @@ public class Redditdata {
         // Scheduling our code for every 5 minutes
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
+        // Defining our Reddit OAuth credentials 
+        String clientId = "qlQUzr9kQi2k12vy0C4RBA";
+        String clientSecret = "ohKP0Ao2IPhZcqfc_E2TfBsPkXlbyg";
+        String userAgent = "MyRedditApp/1.0 (by PuzzledBrother9059; kvpvishnu11@gmail.com)";
+
         executorService.scheduleAtFixedRate(() -> {
             try {
                 // My DB parameters
@@ -48,17 +54,10 @@ public class Redditdata {
 
                 while (subredditResultSet.next()) {
                     String subredditName = subredditResultSet.getString("subreddit_name");
-                    
-                    /* Defining our Reddit credentials for oauth API */
-                    
-                    String clientId = "qlQUzr9kQi2k12vy0C4RBA";
-                    String clientSecret = "ohKP0Ao2IPhZcqfc_E2TfBsPkXlbyg";
-                    String userAgent = "MyRedditApp/1.0 (by PuzzledBrother9059; kvpvishnu11@gmail.com)";
 
                     String apiUrl = "https://oauth.reddit.com/r/" + subredditName + "/comments.json";
 
                     String credentials = clientId + ":" + clientSecret;
-                   // String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
 
                     HttpClient client = HttpClient.newHttpClient();
 
@@ -124,4 +123,3 @@ public class Redditdata {
         }, 0, 300, TimeUnit.SECONDS);
     }
 }
-
