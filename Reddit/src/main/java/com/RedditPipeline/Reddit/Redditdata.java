@@ -65,7 +65,8 @@ public class Redditdata {
                     String requestUrl = apiUrl;
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(requestUrl))
-                            .header("Authorization", "Basic " + credentials)
+                            .header("Authorization", "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8)))
+                            .header("User-Agent", userAgent)
                             .header("User-Agent", userAgent)
                             .GET()
                             .build();
