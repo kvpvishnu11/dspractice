@@ -99,7 +99,8 @@ public class Redditdata
 
                     // Parsing the JSON response
                     JSONObject jsonResponse = new JSONObject(response.body());
-                    System.out.println(jsonResponse);
+                  //  System.out.println(jsonResponse);
+                    System.out.println("Json test - generated");
            
                     if (jsonResponse.has("error")) {
                         String errorMessage = jsonResponse.getString("error");
