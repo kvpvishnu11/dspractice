@@ -51,7 +51,7 @@ public class Redditdata {
 //                String username = "root";
 //                String password = "150030441@klU";
 
-                String jdbcUrl = "jdbc:postgresql://localhost:5432/youtube";
+                String jdbcUrl = "jdbc:postgresql://localhost:5432/reddit";
                 String username = "postgres";
                 String password = "150030441@klU";
                 
