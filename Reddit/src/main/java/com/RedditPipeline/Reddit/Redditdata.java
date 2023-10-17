@@ -47,10 +47,14 @@ public class Redditdata {
                 }
 
                 // My DB parameters
-                String jdbcUrl = "jdbc:mysql://localhost:3306/reddit";
-                String username = "root";
-                String password = "150030441@klU";
+//                String jdbcUrl = "jdbc:mysql://localhost:3306/reddit";
+//                String username = "root";
+//                String password = "150030441@klU";
 
+                String jdbcUrl = "jdbc:postgresql://localhost:5432/youtube";
+                String username = "postgres";
+                String password = "150030441@klU";
+                
                 /* Establishing connections and preparing required SQL queries for our scenario */
                 Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
 
