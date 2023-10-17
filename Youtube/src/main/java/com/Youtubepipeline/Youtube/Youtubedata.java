@@ -28,9 +28,10 @@ public class Youtubedata {
 
     public static void main(String[] args) {
     	
+    	// Scheduling my code to run it every 5 minutes 
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-        // My Database related URL and credentials - "youtube" is my db name
+        // My Database related URL and credentials - "youtube" is my database name
         String jdbcUrl = "jdbc:postgresql://localhost:5432/youtube";
         String username = "postgres";
         String password = "150030441@klU";
@@ -41,6 +42,7 @@ public class Youtubedata {
             // Scheduling the code to run every 5 minutes
             scheduler.scheduleAtFixedRate(() -> {
                 try {
+                	// This is our main logic 
                     fetchAndInsertYouTubeComments(conn);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -67,7 +69,9 @@ public class Youtubedata {
         return null;
     }
 
-    // Once we fetch the video ID, use the same ID to fetch the YouTube comments
+    // Our Main logic to fetch and insert the comments
+    // First we will fetch the videoID as well from a database table dynamically
+    
     private static void fetchAndInsertYouTubeComments(Connection conn) {
         try {
             String videoId = fetchVideoIdFromDatabase(conn);
@@ -78,7 +82,8 @@ public class Youtubedata {
             }
 
             // Define the API related parameters
-            String apiKey = "AIzaSyCwXjwmK-p7eWrher4jnBUHtDVfR54yhq4"; 
+            
+            String apiKey = "AIzaSyCwXjwmK-p7eWrher4jnBUHtDVfR54yhq4"; // API Key that we generated for our project in google cloud
             int maxResults = 100;
 
             // API URL Generation
@@ -91,13 +96,16 @@ public class Youtubedata {
             }
 
             // Using HTTP client to send the request
+            
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl))
                     .build();
 
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-
+            
+            /* If the service response is success, then fetch the desired fields from JSON */
+            
             if (response.statusCode() == 200) {
                 // Parsing the JSON response
                 JSONObject jsonResponse = new JSONObject(response.body());
@@ -115,26 +123,19 @@ public class Youtubedata {
                             .getJSONObject("snippet")
                             .getString("publishedAt");
 
-                    // Change the format of the date to be compatible with PostgreSQL TIMESTAMP
+                    /* Date format to be compatible with DB time stamp */
+                    
                     SimpleDateFormat inputDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
                     SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-                    // Parse the date in UTC timezone
                     inputDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                     Date parsedDate = inputDateFormat.parse(commentCreatedDateTime);
-
-                    // Format the date for insertion into the database
                     String commentCreatedDateTimeFormatted = outputDateFormat.format(parsedDate);
-
-                    // Insert the comment into the database while avoiding duplicates
                     insertCommentIntoDatabase(conn, commentId, commentText, commentCreatedDateTimeFormatted);
                 }
-
-                // Getting the next page token for pagination
-                nextPageToken = jsonResponse.optString("nextPageToken", null);
+          nextPageToken = jsonResponse.optString("nextPageToken", null);
                 System.out.println("Insertion done");
             } else {
-                // Error handling
+                // Basic Error handling
                 System.out.println("Error Response Code: " + response.statusCode());
                 System.out.println("Error Response Body:");
                 System.out.println(response.body());
@@ -144,7 +145,8 @@ public class Youtubedata {
         }
     }
 
-    // Inserting Comment into DB by checking if the comment id already exists in DB or not
+    /* Inserting Comment into DB by checking if the comment id already exists in DB or not */
+    
     private static void insertCommentIntoDatabase(Connection conn, String commentId, String commentText, String commentCreatedDateTime) {
         try {
             // Checking if the comment id already exists in DB first
@@ -152,7 +154,6 @@ public class Youtubedata {
             PreparedStatement checkStatement = conn.prepareStatement(checkQuery);
             checkStatement.setString(1, commentId);
             if (checkStatement.executeQuery().next()) {
-                // If a comment id exists, do nothing
                 return;
             }
 

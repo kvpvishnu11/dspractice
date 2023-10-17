@@ -1,5 +1,4 @@
 package com.RedditPipeline.Reddit;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -18,10 +17,12 @@ import java.net.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.Date;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class Redditdata {
     public static void main(String[] args) {
-        // Scheduling it for every 5 minutes
+        // Scheduling our code for every 5 minutes
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
         executorService.scheduleAtFixedRate(() -> {
@@ -31,7 +32,7 @@ public class Redditdata {
                 String username = "postgres";
                 String password = "150030441@klU";
 
-                // Establish a database connection
+                /* Establishing connections and preparing required SQL queries for our scenario */
                 Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
 
                 String insertSql = "INSERT INTO reddit_comments (comment_id, comment_text, subreddit, comment_created_time, db_insertion_time) " +
@@ -41,36 +42,43 @@ public class Redditdata {
                 String checkIfExistsSql = "SELECT comment_id FROM reddit_comments WHERE comment_id = ?";
                 PreparedStatement checkIfExistsStatement = connection.prepareStatement(checkIfExistsSql);
 
-                // Fetch the subreddits dynamically from the database
                 String fetchSubredditsSql = "SELECT subreddit_name FROM subreddits";
                 PreparedStatement fetchSubredditsStatement = connection.prepareStatement(fetchSubredditsSql);
-
-                // Fetch subreddit names from the database
                 ResultSet subredditResultSet = fetchSubredditsStatement.executeQuery();
 
                 while (subredditResultSet.next()) {
                     String subredditName = subredditResultSet.getString("subreddit_name");
+                    
+                    /* Defining our Reddit credentials for oauth API */
+                    
+                    String clientId = "qlQUzr9kQi2k12vy0C4RBA";
+                    String clientSecret = "ohKP0Ao2IPhZcqfc_E2TfBsPkXlbyg";
+                    String userAgent = "MyRedditApp/1.0 (by PuzzledBrother9059; kvpvishnu11@gmail.com)";
 
-                    String apiUrl = "https://api.reddit.com/r/" + subredditName + "/comments.json";
+                    String apiUrl = "https://oauth.reddit.com/r/" + subredditName + "/comments.json";
+
+                    String credentials = clientId + ":" + clientSecret;
+                   // String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
 
                     HttpClient client = HttpClient.newHttpClient();
 
-                    // Send HTTP request
+                    // Send HTTP request with OAuth authorization
                     String requestUrl = apiUrl;
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(requestUrl))
-                            .header("User-Agent", "MyRedditApp/1.0 (by PuzzledBrother9059; kvpvishnu11@gmail.com)") // Replace with your user agent
+                            .header("Authorization", "Basic " + credentials)
+                            .header("User-Agent", userAgent)
                             .GET()
                             .build();
 
-                    // Send the request and get the response
+                    // Capturing the response from the API
                     HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
                     // Parsing the JSON response
                     JSONObject jsonResponse = new JSONObject(response.body());
-                 // System.out.println("JSON Response:");
-                    //System.out.println(jsonResponse);
-                    System.out.println("Reddit comment insertion done:");
+
+                    System.out.println("Reddit comment insertion done");
+
                     // Extract the comments data
                     if (jsonResponse.has("data")) {
                         JSONObject data = jsonResponse.getJSONObject("data");
@@ -85,26 +93,19 @@ public class Redditdata {
                                 ResultSet resultSet = checkIfExistsStatement.executeQuery();
 
                                 if (!resultSet.next()) {
-                                    // Comment ID doesn't exist in the database, proceed to insert
                                     String commentText = commentData.getString("body");
                                     String subreddit = subredditName;
                                     long createdUtc = commentData.getLong("created_utc");
 
-                                    // Convert created_utc to a formatted date-time string in UTC
                                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                                     sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                                     String commentCreatedTimeString = sdf.format(new Date(createdUtc * 1000));
-
-                                    // Parse the formatted string into a Timestamp
                                     Timestamp commentCreatedTime = Timestamp.valueOf(commentCreatedTimeString);
 
-                                    // Set the parameters for the SQL statement
                                     preparedStatement.setString(1, commentId);
                                     preparedStatement.setString(2, commentText);
                                     preparedStatement.setString(3, subreddit);
                                     preparedStatement.setTimestamp(4, commentCreatedTime);
-
-                                    // Execute the SQL statement to insert the comment or reply
                                     preparedStatement.executeUpdate();
                                 }
 
@@ -123,3 +124,4 @@ public class Redditdata {
         }, 0, 300, TimeUnit.SECONDS);
     }
 }
+
