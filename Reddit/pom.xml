@@ -17,11 +17,7 @@
   </properties>
 <dependencies>
 
- <dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>8.0.28</version> <!-- Use the latest version available -->
-    </dependency>
+
     <!-- JUnit Dependency -->
     <dependency>
       <groupId>junit</groupId>
