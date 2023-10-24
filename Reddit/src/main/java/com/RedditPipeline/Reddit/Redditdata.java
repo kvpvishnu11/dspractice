@@ -50,14 +50,22 @@ public class Redditdata
 
                 // Setting up our DB parameters
                 String jdbcUrl = "jdbc:postgresql://localhost:5432/reddit";
-                String username = "postgres";
+                String username = "root";
                 String password = "150030441@klU";
                 
                 /* Establishing connections and preparing required SQL queries for our scenario */
                 Connection connection = DriverManager.getConnection(jdbcUrl, username, password);
 
-                String insertSql = "INSERT INTO reddit_comments (comment_id, comment_text, subreddit, comment_created_time, db_insertion_time) " +
-                        "VALUES (?, ?, ?, ?, NOW()) ON CONFLICT (comment_id) DO NOTHING";
+                String insertSql = "INSERT INTO reddit_comments (comment_id, comment_text, subreddit, comment_created_time, submission_id, db_insertion_time) " +
+                        "VALUES (?, ?, ?, ?,?, NOW()) ON CONFLICT (comment_id) DO NOTHING";
+              
+                
+//                String insertSql = "INSERT INTO reddit_comments (comment_id, comment_text, subreddit, comment_created_time, submission_id, db_insertion_time) " +
+//                        "VALUES (?, ?, ?, ?, ?, NOW()) " +
+//                        "ON DUPLICATE KEY UPDATE comment_id = comment_id";   
+
+      
+                
                 PreparedStatement preparedStatement = connection.prepareStatement(insertSql);
 
                 String checkIfExistsSql = "SELECT comment_id FROM reddit_comments WHERE comment_id = ?";
@@ -116,7 +124,7 @@ public class Redditdata
                             for (int i = 0; i < children.length(); i++) {
                                 JSONObject commentData = children.getJSONObject(i).getJSONObject("data");
                                 String commentId = commentData.getString("id");
-
+                                String submissionId = commentData.getString("link_id"); // Adding submission Id also
                                 // Check if the ID already exists in the database
                                 checkIfExistsStatement.setString(1, commentId);
                                 ResultSet resultSet = checkIfExistsStatement.executeQuery();
@@ -135,6 +143,7 @@ public class Redditdata
                                     preparedStatement.setString(2, commentText);
                                     preparedStatement.setString(3, subreddit);
                                     preparedStatement.setTimestamp(4, commentCreatedTime);
+                                    preparedStatement.setString(5, submissionId);
                                     preparedStatement.executeUpdate();
                                 }
 
