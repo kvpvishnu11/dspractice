@@ -50,7 +50,7 @@ public class Redditdata
 
                 // Setting up our DB parameters
                 String jdbcUrl = "jdbc:postgresql://localhost:5432/reddit";
-                String username = "root";
+                String username = "postgres";
                 String password = "150030441@klU";
                 
                 /* Establishing connections and preparing required SQL queries for our scenario */
