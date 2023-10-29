@@ -123,9 +123,9 @@ public class Youtubedata {
                             .getJSONObject("snippet")
                             .getString("publishedAt");
                     
-                    String targetVideoId = snippet.getJSONObject("topLevelComment")
+                    String targetVideoId = comment.getJSONObject("snippet")
+                            .getJSONObject("topLevelComment")
                             .getJSONObject("snippet")
-                            .getJSONObject("videoId")
                             .getString("videoId");
 
                     /* Date format to be compatible with DB time stamp */
