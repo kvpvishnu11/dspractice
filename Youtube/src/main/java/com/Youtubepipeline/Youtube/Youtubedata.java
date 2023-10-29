@@ -122,6 +122,11 @@ public class Youtubedata {
                     String commentCreatedDateTime = snippet.getJSONObject("topLevelComment")
                             .getJSONObject("snippet")
                             .getString("publishedAt");
+                    
+                    String targetVideoId = snippet.getJSONObject("topLevelComment")
+                            .getJSONObject("snippet")
+                            .getJSONObject("videoId")
+                            .getString("videoId");
 
                     /* Date format to be compatible with DB time stamp */
                     
@@ -130,7 +135,7 @@ public class Youtubedata {
                     inputDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                     Date parsedDate = inputDateFormat.parse(commentCreatedDateTime);
                     String commentCreatedDateTimeFormatted = outputDateFormat.format(parsedDate);
-                    insertCommentIntoDatabase(conn, commentId, commentText, commentCreatedDateTimeFormatted);
+                    insertCommentIntoDatabase(conn, commentId, commentText, commentCreatedDateTimeFormatted,targetVideoId);
                 }
           nextPageToken = jsonResponse.optString("nextPageToken", null);
                 System.out.println("Insertion done");
@@ -147,7 +152,7 @@ public class Youtubedata {
 
     /* Inserting Comment into DB by checking if the comment id already exists in DB or not */
     
-    private static void insertCommentIntoDatabase(Connection conn, String commentId, String commentText, String commentCreatedDateTime) {
+    private static void insertCommentIntoDatabase(Connection conn, String commentId, String commentText, String commentCreatedDateTime,String targetVideoId) {
         try {
             // Checking if the comment id already exists in DB first
             String checkQuery = "SELECT * FROM comments WHERE comment_id = ?";
@@ -169,11 +174,12 @@ public class Youtubedata {
             Timestamp timestamp = new Timestamp(parsedDate.getTime());
 
             // Insert the comment into the database
-            String insertQuery = "INSERT INTO comments (comment_id, comment_text, comment_created_datetime) VALUES (?, ?, ?)";
+            String insertQuery = "INSERT INTO comments (comment_id, comment_text, comment_created_datetime,target_video_id) VALUES (?, ?,?, ?)";
             PreparedStatement insertStatement = conn.prepareStatement(insertQuery);
             insertStatement.setString(1, commentId);
             insertStatement.setString(2, commentText);
             insertStatement.setTimestamp(3, timestamp);
+            insertStatement.setString(4, targetVideoId);
 
             insertStatement.executeUpdate();
         } catch (SQLException e) {
