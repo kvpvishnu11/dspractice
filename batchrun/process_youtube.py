@@ -22,7 +22,7 @@ db_config = {
 def hs_check_comment(comment):
     CONF_THRESHOLD = 0.9
     data = {
-        "token": os.environ.get("API_TOKEN"),
+        "token": os.environ.get("API_TOKEN_3"),
         "text": comment
     }
 
