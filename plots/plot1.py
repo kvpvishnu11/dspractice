@@ -1,3 +1,4 @@
+# 2 plots - Line plot for Comments count on each day for all 3 data sources & Bar graph for total comments so far for 3 sources
 import psycopg2
 import os
 import matplotlib.pyplot as plt
