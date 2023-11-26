@@ -76,44 +76,29 @@ def fetch_data(query, db_params):
 
 # Fetch data from YouTube database
 youtube_data = fetch_data(youtube_sql_query_plot1, youtube_db_params)
-
-# Fetch data from Reddit database
 reddit_data = fetch_data(reddit_sql_query_plot1, reddit_db_params)
 
-# Fetch data from Politics database
 politics_data = fetch_data(reddit_sql_query_plot1, politics_db_params)
 
-# Extracting dates and counts for plotting for YouTube
+# Extracting dates and counts for plotting 
 youtube_dates = [row[0] for row in youtube_data]
 youtube_counts = [row[1] for row in youtube_data]
 
-# Extracting dates and counts for plotting for Reddit
 reddit_dates = [row[0] for row in reddit_data]
 reddit_counts = [row[1] for row in reddit_data]
 
-# Extracting dates and counts for plotting for Politics
 politics_dates = [row[0] for row in politics_data]
 politics_counts = [row[1] for row in politics_data]
 
 # Plotting the data
 fig, ax = plt.subplots()
 
-# Plotting YouTube data
 ax.plot_date(youtube_dates, youtube_counts, '-', label='YouTube')
-
-# Plotting Reddit data
 ax.plot_date(reddit_dates, reddit_counts, '-', label='Reddit')
-
-# Plotting Politics data
 ax.plot_date(politics_dates, politics_counts, '-', label='Politics')
-
-# Formatting the x-axis to display dates nicely
 ax.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
-
-# Rotating the x-axis labels for better readability
 plt.xticks(rotation=45)
 
-# Adding labels and title
 plt.xlabel('Date')
 plt.ylabel('Comment Count')
 plt.title('Reddit/Youtube/Politics Comment Count Over Time')
@@ -136,7 +121,6 @@ comment_counts = [total_youtube_comments, total_reddit_comments, total_politics_
 
 ax.bar(data_sources, comment_counts, color=['blue', 'orange', 'green'])
 
-# Adding labels and title
 plt.xlabel('Data Source')
 plt.ylabel('Total Comment Count')
 plt.title('Total Comment Count for YouTube, Reddit, and Politics')
