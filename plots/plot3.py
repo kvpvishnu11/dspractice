@@ -3,6 +3,8 @@ import os
 import psycopg2
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
+from matplotlib.ticker import FuncFormatter
+
 
 load_dotenv('db_cred.env')
 # Database connection parameters for YouTube, Reddit & Politics
@@ -63,11 +65,23 @@ youtube_hateful_counts = fetch_hate_speech_counts(youtube_db_params, youtube_hat
 # Plotting the data as separate bar graphs for hate speech
 hate_speech_values = ['Hateful', 'Not Hateful']
 
+
+# Function to format y-axis values
+def format_y_values(value, pos):
+    if value >= 1e6:
+        return f'{value / 1e6:.0f}M'
+    elif value >= 1e3:
+        return f'{value / 1e3:.0f}K'
+    else:
+        return f'{value:.0f}'
+
+
 # Plot for Reddit, politics n youtube
 plt.bar(hate_speech_values, reddit_hateful_counts, color=['red', 'blue'])
 plt.xlabel('Hate Speech')
 plt.ylabel('Count')
 plt.title('Hate Speech Analysis in Reddit Comments')
+plt.gca().yaxis.set_major_formatter(FuncFormatter(format_y_values))
 plt.savefig('reddit_hate_speech_analysis_plot3.png')
 plt.clf()  
 
@@ -75,6 +89,7 @@ plt.bar(hate_speech_values, politics_hateful_counts, color=['red', 'blue'])
 plt.xlabel('Hate Speech')
 plt.ylabel('Count')
 plt.title('Hate Speech Analysis in Politics Comments')
+plt.gca().yaxis.set_major_formatter(FuncFormatter(format_y_values))
 plt.savefig('politics_hate_speech_analysis_plot3.png')
 plt.clf()   
 
@@ -82,4 +97,5 @@ plt.bar(hate_speech_values, youtube_hateful_counts, color=['red', 'blue'])
 plt.xlabel('Hate Speech')
 plt.ylabel('Count')
 plt.title('Hate Speech Analysis in Youtube Comments')
+plt.gca().yaxis.set_major_formatter(FuncFormatter(format_y_values))
 plt.savefig('youtube_hate_speech_analysis_plot3.png')
