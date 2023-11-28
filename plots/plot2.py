@@ -4,6 +4,8 @@ import psycopg2
 import os
 import matplotlib.pyplot as plt
 from dotenv import load_dotenv
+from matplotlib.ticker import FuncFormatter
+
 
 load_dotenv('db_cred.env')
 # Database connection parameters for YouTube, Reddit & Politics
@@ -66,11 +68,25 @@ youtube_counts = fetch_sentiment_counts(youtube_db_params, youtube_positive_quer
 # Plotting the data as separate bar graphs
 sentiments = ['Positive', 'Negative', 'Neutral']
 
+
+
+# Function to format y-axis values
+def format_y_values(value, pos):
+    if value >= 1e6:
+        return f'{value / 1e6:.0f}M'
+    elif value >= 1e3:
+        return f'{value / 1e3:.0f}K'
+    else:
+        return f'{value:.0f}'
+    
+
 # Plot for reddit, politics, youtube
 plt.bar(sentiments, reddit_counts, color=['green', 'red', 'blue'])
 plt.xlabel('Sentiment')
 plt.ylabel('Count')
 plt.title('Sentiment Analysis of Reddit Comments')
+plt.gca().yaxis.set_major_formatter(FuncFormatter(format_y_values))
+
 plt.savefig('reddit_sentiment_analysis_plot2.png')
 plt.clf()   
 
@@ -78,6 +94,8 @@ plt.bar(sentiments, politics_counts, color=['green', 'red', 'blue'])
 plt.xlabel('Sentiment')
 plt.ylabel('Count')
 plt.title('Sentiment Analysis of Politics Comments')
+plt.gca().yaxis.set_major_formatter(FuncFormatter(format_y_values))
+
 plt.savefig('politics_sentiment_analysis_plot2.png')
 plt.clf()   
 
@@ -85,4 +103,6 @@ plt.bar(sentiments, youtube_counts, color=['green', 'red', 'blue'])
 plt.xlabel('Sentiment')
 plt.ylabel('Count')
 plt.title('Sentiment Analysis of Youtube Comments')
+plt.gca().yaxis.set_major_formatter(FuncFormatter(format_y_values))
+
 plt.savefig('youtube_sentiment_analysis_plot2.png')
